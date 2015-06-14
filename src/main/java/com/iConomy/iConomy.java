@@ -78,13 +78,8 @@ public class iConomy extends JavaPlugin {
 		new File("lib" + File.separator).setWritable(true);
 		new File("lib" + File.separator).setExecutable(true);
 
-		// Plugin Directory
-		getDataFolder().mkdir();
-		getDataFolder().setWritable(true);
-		getDataFolder().setExecutable(true);
-
 		// Setup the path.
-		Constants.Plugin_Directory = getDataFolder().getPath();
+		Constants.Plugin_Directory = getDataFolder().getAbsolutePath();
 
 		// Grab plugin details
 		final PluginDescriptionFile pdfFile = this.getDescription();
@@ -93,12 +88,11 @@ public class iConomy extends JavaPlugin {
 		final FileManager file = new FileManager(getDataFolder().getPath(), "VERSION", false);
 
 		// Default Files
-		extract("Config.yml");
+		saveDefaultConfig();
 		extract("Template.yml");
 
 		try {
-			new YamlConfiguration();
-			Constants.load(YamlConfiguration.loadConfiguration(new File(getDataFolder(), "Config.yml")));
+			Constants.load(YamlConfiguration.loadConfiguration(new File(getDataFolder(), "config.yml")));
 		} catch (final Exception e) {
 			Server.getPluginManager().disablePlugin(this);
 			System.out.println("[iConomy] Failed to retrieve configuration from directory.");
@@ -139,7 +133,7 @@ public class iConomy extends JavaPlugin {
 		}
 
 		// Check version details before the system loads
-		update(file, Double.valueOf(pdfFile.getVersion()));
+		update(file, Double.valueOf(pdfFile.getVersion().replace("-SNAPSHOT", "")));
 
 		// Initialize default systems
 		Accounts = new Accounts();
@@ -211,9 +205,9 @@ public class iConomy extends JavaPlugin {
 
 			try {
 				final double current = Double.parseDouble(file.getSource());
-				final LinkedList<String> MySQL = new LinkedList<String>();
-				final LinkedList<String> GENERIC = new LinkedList<String>();
-				LinkedList<String> SQL = new LinkedList<String>();
+				final LinkedList<String> MySQL = new LinkedList<>();
+				final LinkedList<String> GENERIC = new LinkedList<>();
+				LinkedList<String> SQL = new LinkedList<>();
 
 				if (current != version) {
 					if (current < 4.64) {
@@ -344,7 +338,7 @@ public class iConomy extends JavaPlugin {
 	private void extract(final String name) {
 		final File actual = new File(getDataFolder(), name);
 		if (!actual.exists()) {
-			final InputStream input = this.getClass().getResourceAsStream("/default/" + name);
+			final InputStream input = this.getClass().getResourceAsStream(name);
 			if (input != null) {
 				FileOutputStream output = null;
 
