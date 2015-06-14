@@ -1,6 +1,6 @@
 name: iConomy
 main: com.iConomy.iConomy
-version: 5.01
+version: ${project.version}
 authors: [Nijikokun]
 commands:
     money:
