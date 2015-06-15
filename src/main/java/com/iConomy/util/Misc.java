@@ -13,9 +13,12 @@ public class Misc {
 	/**
 	 * Checks text against two variables, if it equals at least one returns true.
 	 *
-	 * @param text The text that we were provided with.
-	 * @param against The first variable that needs to be checked against
-	 * @param or The second variable that it could possibly be.
+	 * @param text
+	 *            The text that we were provided with.
+	 * @param against
+	 *            The first variable that needs to be checked against
+	 * @param or
+	 *            The second variable that it could possibly be.
 	 *
 	 * @return <code>Boolean</code> - True or false based on text.
 	 */
@@ -29,38 +32,32 @@ public class Misc {
 	}
 
 	public static boolean isSelf(final CommandSender sender, final String name) {
-		return sender instanceof Player ? ((Player)sender).getName().equalsIgnoreCase(name) ? true : false : false;
+		return sender instanceof Player ? ((Player) sender).getName().equalsIgnoreCase(name) ? true : false : false;
 	}
 
-	public static int plural(final Double amount) {
-		if(amount != 1 || amount != -1) {
+	public static int plural(final double amount) {
+		if (amount != 1 || amount != -1) {
 			return 1;
 		}
 		return 0;
 	}
 
-	public static int plural(final Integer amount) {
-		if(amount != 1 || amount != -1) {
+	public static int plural(final int amount) {
+		if (amount != 1 || amount != -1) {
 			return 1;
 		}
 		return 0;
-	}
-
-	public static String BankCurrency(final int which, final String denom) {
-		final String[] denoms = denom.split(",");
-
-		return denoms[which];
 	}
 
 	public static String formatted(final String amount, final List<String> maj, final List<String> min) {
 		String formatted = "";
 		final String famount = amount.replace(",", "");
 
-		if(Constants.FormatMinor) {
+		if (Constants.FormatMinor) {
 			String[] pieces = null;
 			String[] fpieces = null;
 
-			if(amount.contains(".")) {
+			if (amount.contains(".")) {
 				pieces = amount.split("\\.");
 				fpieces = new String[] { pieces[0].replace(",", ""), pieces[1] };
 			} else {
@@ -68,16 +65,18 @@ public class Misc {
 				fpieces = new String[] { amount.replace(",", ""), "0" };
 			}
 
-			if(Constants.FormatSeperated) {
+			if (Constants.FormatSeperated) {
 				final String major = maj.get(plural(Integer.valueOf(fpieces[0])));
 				final String minor = min.get(plural(Integer.valueOf(fpieces[1])));
 
-				if(pieces[1].startsWith("0") && !pieces[1].equals("0")) pieces[1] = pieces[1].substring(1, pieces[1].length());
-				if(pieces[0].startsWith("0") && !pieces[0].equals("0")) pieces[0] = pieces[0].substring(1, pieces[0].length());
+				if (pieces[1].startsWith("0") && !pieces[1].equals("0"))
+					pieces[1] = pieces[1].substring(1, pieces[1].length());
+				if (pieces[0].startsWith("0") && !pieces[0].equals("0"))
+					pieces[0] = pieces[0].substring(1, pieces[0].length());
 
-				if(Integer.valueOf(fpieces[1]) != 0 && Integer.valueOf(fpieces[0]) != 0) {
+				if (Integer.valueOf(fpieces[1]) != 0 && Integer.valueOf(fpieces[0]) != 0) {
 					formatted = pieces[0] + " " + major + ", " + pieces[1] + " " + minor;
-				} else if(Integer.valueOf(fpieces[0]) != 0) {
+				} else if (Integer.valueOf(fpieces[0]) != 0) {
 					formatted = pieces[0] + " " + major;
 				} else {
 					formatted = pieces[1] + " " + minor;
@@ -85,7 +84,7 @@ public class Misc {
 			} else {
 				String currency = "";
 
-				if(Double.valueOf(famount) < 1 || Double.valueOf(famount) > -1) {
+				if (Double.valueOf(famount) < 1 || Double.valueOf(famount) > -1) {
 					currency = min.get(plural(Integer.valueOf(fpieces[1])));
 				} else {
 					currency = maj.get(1);

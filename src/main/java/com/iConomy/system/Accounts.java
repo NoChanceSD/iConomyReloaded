@@ -1,8 +1,5 @@
 package com.iConomy.system;
 
-import com.iConomy.iConomy;
-import com.iConomy.util.Constants;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,234 +9,231 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import com.iConomy.iConomy;
+import com.iConomy.util.Constants;
+
 /**
  * Manage Account.
- * 
+ *
  * @author Nijikokun
  */
 public class Accounts {
 
-    public Accounts() { }
+	public Accounts() {
+	}
 
-    public boolean exists(String name) {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
-        boolean exists = false;
+	public final boolean exists(final String name) {
+		boolean exists;
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("SELECT * FROM " + Constants.SQLTable + " WHERE username = ? LIMIT 1");
-            ps.setString(1, name);
-            rs = ps.executeQuery();
-            exists = rs.next();
-        } catch (Exception e) {
-            exists = false;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+		try (Connection conn = iConomy.getiCoDatabase().getConnection();
+				PreparedStatement ps = conn.prepareStatement("SELECT * FROM " + Constants.SQLTable + " WHERE username = ? LIMIT 1");
+				ResultSet rs = ps.executeQuery()) {
+			ps.setString(1, name);
+			exists = rs.next();
+		} catch (final Exception e) {
+			exists = false;
+		}
 
-            if(rs != null)
-                try { rs.close(); } catch (SQLException ex) { }
+		return exists;
+	}
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
+	public final boolean create(final String name) {
+		Connection conn = null;
+		final ResultSet rs = null;
+		PreparedStatement ps = null;
 
-        return exists;
-    }
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
+			ps = conn.prepareStatement("INSERT INTO " + Constants.SQLTable + "(username, balance, hidden) VALUES (?, ?, 0)");
+			ps.setString(1, name);
+			ps.setDouble(2, Constants.Holdings);
+			ps.executeUpdate();
+		} catch (final Exception e) {
+			return false;
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-    public boolean create(String name) {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("INSERT INTO " + Constants.SQLTable + "(username, balance, hidden) VALUES (?, ?, 0)");
-            ps.setString(1, name);
-            ps.setDouble(2, Constants.Holdings);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            return false;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+		return true;
+	}
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
+	public final boolean remove(final String name) {
+		Connection conn = null;
+		final ResultSet rs = null;
+		PreparedStatement ps = null;
 
-        return true;
-    }
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
+			ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + " WHERE username = ? LIMIT 1");
+			ps.setString(1, name);
+			ps.executeUpdate();
+		} catch (final Exception e) {
+			return false;
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-    public boolean remove(String name) {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + " WHERE username = ? LIMIT 1");
-            ps.setString(1, name);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            return false;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+		return true;
+	}
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
+	public final boolean purge() {
+		Connection conn = null;
+		final ResultSet rs = null;
+		PreparedStatement ps = null;
 
-        return true;
-    }
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
+			ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + " WHERE balance = ?");
+			ps.setDouble(1, Constants.Holdings);
+			ps.executeUpdate();
+		} catch (final Exception e) {
+			return false;
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-    public boolean removeCompletely(String name) {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + " WHERE username = ? LIMIT 1");
-            ps.setString(1, name);
-            ps.executeUpdate();
+		return true;
+	}
 
-            ps.clearParameters();
+	/**
+	 * Removes all accounts from the database. Do not use this.
+	 *
+	 * @return
+	 */
+	public final boolean emptyDatabase() {
+		Connection conn = null;
+		Statement ps = null;
 
-            ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + " WHERE account_name = ?");
-            ps.setString(1, name);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            return false;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
+			ps = conn.createStatement();
+			ps.execute("TRUNCATE TABLE " + Constants.SQLTable);
+		} catch (final Exception e) {
+			return false;
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    public boolean purge() {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
+	public final List<Double> values() {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		final List<Double> Values = new ArrayList<>();
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + " WHERE balance = ?");
-            ps.setDouble(1, Constants.Holdings);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            return false;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
+			ps = conn.prepareStatement("SELECT balance FROM " + Constants.SQLTable);
+			rs = ps.executeQuery();
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
+			while (rs.next()) {
+				Values.add(rs.getDouble("balance"));
+			}
+		} catch (final Exception e) {
+			return null;
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-        return true;
-    }
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-    /**
-     * Removes all accounts from the database.
-     * Do not use this.
-     * 
-     * @return
-     */
-    public boolean emptyDatabase() {
-        Connection conn = null;
-        Statement ps = null;
+		return Values;
+	}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.createStatement();
-            ps.execute("TRUNCATE TABLE " + Constants.SQLTable);
-        } catch (Exception e) {
-            return false;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+	public final LinkedHashMap<String, Double> ranking(final int amount) {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		final LinkedHashMap<String, Double> Ranking = new LinkedHashMap<>();
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
+			ps = conn.prepareStatement("SELECT username,balance FROM " + Constants.SQLTable + " WHERE hidden = 0 ORDER BY balance DESC LIMIT ?");
+			ps.setInt(1, amount);
+			rs = ps.executeQuery();
 
-        return true;
-    }
+			while (rs.next()) {
+				Ranking.put(rs.getString("username"), rs.getDouble("balance"));
+			}
+		} catch (final Exception e) {
+			System.out.println(e.getMessage());
+			return null;
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-    public List<Double> values() {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
-        List<Double> Values = new ArrayList<Double>();
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("SELECT balance FROM " + Constants.SQLTable);
-            rs = ps.executeQuery();
+		return Ranking;
+	}
 
-            while(rs.next()) {
-                Values.add(rs.getDouble("balance"));
-            }
-        } catch (Exception e) {
-            return null;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+	public final Account get(final String name) {
+		if (exists(name)) {
+			return new Account(name);
+		} else {
+			if (!create(name)) {
+				return null;
+			}
+		}
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
-
-        return Values;
-    }
-
-    public LinkedHashMap<String, Double> ranking(int amount) {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
-        LinkedHashMap<String, Double> Ranking = new LinkedHashMap<String, Double>();
-
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("SELECT username,balance FROM " + Constants.SQLTable + " WHERE hidden = 0 ORDER BY balance DESC LIMIT ?");
-            ps.setInt(1, amount);
-            rs = ps.executeQuery();
-
-            while(rs.next()) {
-                Ranking.put(rs.getString("username"), rs.getDouble("balance"));
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return null;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
-
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
-
-        return Ranking;
-    }
-
-    public Account get(String name) {
-        if(exists(name)) {
-            return new Account(name);
-        } else {
-            if(!create(name)) {
-                return null;
-            }
-        }
-
-        return new Account(name);
-    }
+		return new Account(name);
+	}
 }

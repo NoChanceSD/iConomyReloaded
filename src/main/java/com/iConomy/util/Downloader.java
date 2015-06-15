@@ -5,77 +5,70 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import java.net.URLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 
 public class Downloader {
 
-    protected static int count, total, itemCount, itemTotal;
-    protected static long lastModified;
-    protected static String error;
-    protected static boolean cancelled;
+	protected static long lastModified;
+	protected static boolean cancelled;
 
-    public Downloader() { }
+	public Downloader() {
+	}
 
-    public synchronized void cancel() {
-        cancelled = true;
-    }
+	public static void install(final String location, final String filename) {
+		try {
+			cancelled = false;
+			System.out.println("[iConomy] Downloading Dependencies");
+			if (cancelled) {
+				return;
+			}
+			System.out.println("   + " + filename + " downloading...");
+			download(location, filename);
+			System.out.println("   - " + filename + " finished.");
+			System.out.println("[iConomy] Downloading " + filename + "...");
+		} catch (final IOException ex) {
+			System.out.println("[iConomy] Error Downloading File: " + ex);
+		}
+	}
 
-    public static void install(String location, String filename) {
-        try {
-            cancelled = false;
-            count = total = itemCount = itemTotal = 0;
-            System.out.println("[iConomy] Downloading Dependencies");
-            if (cancelled) {
-                return;
-            }
-            System.out.println("   + " + filename + " downloading...");
-            download(location, filename);
-            System.out.println("   - " + filename + " finished.");
-            System.out.println("[iConomy] Downloading " + filename + "...");
-        } catch (IOException ex) {
-            System.out.println("[iConomy] Error Downloading File: " + ex);
-        }
-    }
+	protected static synchronized void download(final String location, final String filename) throws IOException {
+		final URLConnection connection = new URL(location).openConnection();
+		connection.setUseCaches(false);
+		lastModified = connection.getLastModified();
+		final int filesize = connection.getContentLength();
+		final String destination = "lib" + File.separator + filename;
+		final File parentDirectory = new File(destination).getParentFile();
 
-    protected static synchronized void download(String location, String filename)throws IOException {
-        URLConnection connection = new URL(location).openConnection();
-        connection.setUseCaches(false);
-        lastModified = connection.getLastModified();
-        int filesize = connection.getContentLength();
-        String destination = "lib" + File.separator + filename;
-        File parentDirectory = new File(destination).getParentFile();
+		if (parentDirectory != null) {
+			parentDirectory.mkdirs();
+		}
 
-        if (parentDirectory != null) {
-            parentDirectory.mkdirs();
-        }
+		final InputStream in = connection.getInputStream();
+		final OutputStream out = new FileOutputStream(destination);
 
-        InputStream in = connection.getInputStream();
-        OutputStream out = new FileOutputStream(destination);
+		final byte[] buffer = new byte[65536];
+		int currentCount = 0;
+		for (;;) {
+			if (cancelled) {
+				break;
+			}
 
-        byte[] buffer = new byte[65536];
-        int currentCount = 0;
-        for (;;) {
-            if (cancelled) {
-                break;
-            }
+			final int count = in.read(buffer);
 
-            int count = in.read(buffer);
+			if (count < 0) {
+				break;
+			}
 
-            if (count < 0) {
-                break;
-            }
+			out.write(buffer, 0, count);
+			currentCount += count;
+		}
 
-            out.write(buffer, 0, count);
-            currentCount += count;
-        }
+		in.close();
+		out.close();
+	}
 
-        in.close();
-        out.close();
-    }
-
-    public long getLastModified() {
-        return lastModified;
-    }
+	public final long getLastModified() {
+		return lastModified;
+	}
 }

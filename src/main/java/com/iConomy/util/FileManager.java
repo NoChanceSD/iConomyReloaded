@@ -15,272 +15,176 @@ import java.util.logging.Logger;
  * Easy File Management Class
  *
  * @copyright Copyright AniGaiku LLC (C) 2010-2011
- * @author          Nijikokun <nijikokun@gmail.com>
+ * @author Nijikokun <nijikokun@gmail.com>
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
+ *         This program is free software: you can redistribute it and/or modify it under the terms
+ *         of the GNU General Public License as published by the Free Software Foundation, either
+ *         version 2 of the License, or (at your option) any later version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ *         This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+ *         without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *         See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *         You should have received a copy of the GNU General Public License along with this
+ *         program. If not, see <http://www.gnu.org/licenses/>.
  */
 public final class FileManager {
 
-    private String directory = "";
-    private String file = "";
-    private String source = "";
-    private LinkedList<String> lines = new LinkedList<String>();
+	private String directory = "";
+	private String file = "";
+	private String source = "";
+	private final LinkedList<String> lines = new LinkedList<>();
 
-    public FileManager(String directory, String file, boolean create) {
-        this.directory = directory;
-        this.file = file;
+	public FileManager(final String directory, final String file, final boolean create) {
+		this.directory = directory;
+		this.file = file;
 
-        if (create) {
-            this.existsCreate();
-        }
-    }
+		if (create) {
+			this.existsCreate();
+		}
+	}
 
-    public String getSource() {
-        return source;
-    }
+	public String getSource() {
+		return source;
+	}
 
-    public LinkedList<String> getLines() {
-        return lines;
-    }
+	public LinkedList<String> getLines() {
+		return lines;
+	}
 
-    public String getDirectory() {
-        return directory;
-    }
+	public String getDirectory() {
+		return directory;
+	}
 
-    public String getFile() {
-        return file;
-    }
+	public String getFile() {
+		return file;
+	}
 
-    public void setFile(String file) {
-        this.file = file;
-    }
+	public void setFile(final String file) {
+		this.file = file;
+	}
 
-    public void setFile(String file, boolean create) {
-        this.file = file;
+	public void setDirectory(final String directory) {
+		this.directory = directory;
+	}
 
-        if (create) {
-            this.create();
-        }
-    }
+	private void log(final Level level, final Object message) {
+		Logger.getLogger("FileManager").log(level, null, message);
+	}
 
-    public void setDirectory(String directory) {
-        this.directory = directory;
-    }
+	public boolean exists() {
+		return this.exists(this.directory, this.file);
+	}
 
-    public void setDirectory(String directory, boolean create) {
-        this.directory = directory;
+	public boolean exists(final String directory, final String file) {
+		return new File(directory, file).exists();
+	}
 
-        if (create) {
-            this.createDirectory();
-        }
-    }
+	public void existsCreate() {
+		this.existsCreate(this.directory, this.file);
+	}
 
-    private void log(Level level, Object message) {
-        Logger.getLogger("FileManager").log(level, null, message);
-    }
+	public void existsCreate(final String directory, final String file) {
+		if (!new File(directory).exists()) {
+			if (!new File(directory, file).exists()) {
+				this.create(directory, file);
+			} else {
+				this.createDirectory(directory);
+			}
+		}
+	}
 
-    public boolean exists() {
-        return this.exists(this.directory, this.file);
-    }
+	public boolean delete() {
+		return new File(directory, file).delete();
+	}
 
-    public boolean exists(String file) {
-        return this.exists(this.directory, file);
-    }
+	public boolean create() {
+		return this.create(this.directory, this.file);
+	}
 
-    public boolean exists(String directory, String file) {
-        return (new File(directory, file)).exists();
-    }
+	public boolean create(final String directory, final String file) {
+		if (new File(directory).mkdir()) {
+			try {
+				if (new File(directory, file).createNewFile()) {
+					return true;
+				}
+			} catch (final IOException ex) {
+				this.log(Level.SEVERE, ex);
+			}
+		}
 
-    public void existsCreate() {
-        this.existsCreate(this.directory, this.file);
-    }
+		return false;
+	}
 
-    public void existsCreate(String directory, String file) {
-        if (!((new File(directory).exists()))) {
-            if (!((new File(directory, file)).exists())) {
-                this.create(directory, file);
-            } else {
-                this.createDirectory(directory);
-            }
-        }
-    }
+	public boolean createDirectory(final String directory) {
+		if (new File(directory).mkdir()) {
+			return true;
+		}
 
-    public boolean delete() {
-        return new File(directory, file).delete();
-    }
+		return false;
+	}
 
-    public boolean create() {
-        return this.create(this.directory, this.file);
-    }
+	public boolean read() {
+		return this.read(this.directory, this.file);
+	}
 
-    public boolean create(String directory, String file) {
-        if ((new File(directory)).mkdir()) {
-            try {
-                if (new File(directory, file).createNewFile()) {
-                    return true;
-                }
-            } catch (IOException ex) {
-                this.log(Level.SEVERE, ex);
-            }
-        }
+	public boolean read(final String directory, final String file) {
+		BufferedReader input;
+		String line;
 
-        return false;
-    }
+		try {
+			input = new BufferedReader(new FileReader(new File(directory, file)));
 
-    public boolean createDirectory() {
-        return this.createDirectory(this.directory);
-    }
+			try {
+				this.source = input.readLine();
 
-    public boolean createDirectory(String directory) {
-        if ((new File(directory)).mkdir()) {
-            return true;
-        }
+				while ((line = input.readLine()) != null) {
+					this.lines.add(line);
+				}
+			} catch (final IOException ex) {
+				this.log(Level.SEVERE, ex);
 
-        return false;
-    }
+				return false;
+			}
 
-    public boolean append(String data) {
-        return this.append(this.directory, this.file, new String[]{data});
-    }
+			return true;
+		} catch (final FileNotFoundException ex) {
+			this.log(Level.SEVERE, ex);
+		}
 
-    public boolean append(String[] lines) {
-        return this.append(this.directory, this.file, lines);
-    }
+		return false;
+	}
 
-    public boolean append(String file, String data) {
-        return this.append(this.directory, file, new String[]{data});
-    }
+	public boolean write(final Object data) {
+		return this.write(this.directory, this.file, new Object[] { data });
+	}
 
-    public boolean append(String file, String[] lines) {
-        return this.append(this.directory, file, lines);
-    }
+	public boolean write(final String directory, final String file, final Object[] lines) {
+		BufferedWriter output;
 
-    public boolean append(String directory, String file, String data) {
-        return this.append(directory, file, new String[]{data});
-    }
+		this.existsCreate(directory, file);
 
-    public boolean append(String directory, String file, String[] lines) {
-        BufferedWriter output;
+		try {
+			output = new BufferedWriter(new FileWriter(new File(directory, file)));
 
-        this.existsCreate(directory, file);
+			try {
+				for (final Object line : lines) {
+					output.write(String.valueOf(line));
+				}
+			} catch (final IOException ex) {
+				this.log(Level.SEVERE, ex);
+				output.close();
+				return false;
+			}
 
-        try {
-            output = new BufferedWriter(new FileWriter(new File(directory, file)));
+			output.close();
+			return true;
+		} catch (final FileNotFoundException ex) {
+			this.log(Level.SEVERE, ex);
+		} catch (final IOException ex) {
+			this.log(Level.SEVERE, ex);
+		}
 
-            try {
-                for (String line : lines) {
-                    output.write(line);
-                    output.newLine();
-                }
-            } catch (IOException ex) {
-                this.log(Level.SEVERE, ex);
-                output.close();
-                return false;
-            }
-
-            output.close();
-            return true;
-        } catch (FileNotFoundException ex) {
-            this.log(Level.SEVERE, ex);
-        } catch (IOException ex) {
-            this.log(Level.SEVERE, ex);
-        }
-
-        return false;
-    }
-
-    public boolean read() {
-        return this.read(this.directory, this.file);
-    }
-
-    public boolean read(String file) {
-        return this.read(this.directory, file);
-    }
-
-    public boolean read(String directory, String file) {
-        BufferedReader input;
-        String line;
-
-        try {
-            input = new BufferedReader(new FileReader(new File(directory, file)));
-
-            try {
-                this.source = input.readLine();
-
-                while ((line = input.readLine()) != null) {
-                    this.lines.add(line);
-                }
-            } catch (IOException ex) {
-                this.log(Level.SEVERE, ex);
-
-                return false;
-            }
-
-            return true;
-        } catch (FileNotFoundException ex) {
-            this.log(Level.SEVERE, ex);
-        }
-
-        return false;
-    }
-
-    public boolean write(Object data) {
-        return this.write(this.directory, this.file, new Object[]{data});
-    }
-
-    public boolean write(Object[] lines) {
-        return this.write(this.directory, this.file, lines);
-    }
-
-    public boolean write(String file, Object data) {
-        return this.write(this.directory, file, new Object[]{data});
-    }
-
-    public boolean write(String file, String[] lines) {
-        return this.write(this.directory, file, lines);
-    }
-
-    public boolean write(String directory, String file, Object data) {
-        return this.write(directory, file, new Object[]{data});
-    }
-
-    public boolean write(String directory, String file, Object[] lines) {
-        BufferedWriter output;
-
-        this.existsCreate(directory, file);
-
-        try {
-            output = new BufferedWriter(new FileWriter(new File(directory, file)));
-
-            try {
-                for (Object line : lines) {
-                    output.write(String.valueOf(line));
-                }
-            } catch (IOException ex) {
-                this.log(Level.SEVERE, ex);
-                output.close();
-                return false;
-            }
-
-            output.close();
-            return true;
-        } catch (FileNotFoundException ex) {
-            this.log(Level.SEVERE, ex);
-        } catch (IOException ex) {
-            this.log(Level.SEVERE, ex);
-        }
-
-        return false;
-    }
+		return false;
+	}
 }

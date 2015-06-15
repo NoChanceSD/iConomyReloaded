@@ -12,22 +12,21 @@ public class AccountResetEvent extends Event {
 		this.account = account;
 	}
 
-	public String getAccountName() {
+	public final String getAccountName() {
 		return account;
 	}
 
-	public boolean isCancelled() {
+	public final boolean isCancelled() {
 		return cancelled;
 	}
 
-	public void setCancelled(final boolean cancelled) {
+	public final void setCancelled(final boolean cancelled) {
 		this.cancelled = cancelled;
 	}
 
 	@Override
-	public HandlerList getHandlers() {
+	public final HandlerList getHandlers() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 }
-

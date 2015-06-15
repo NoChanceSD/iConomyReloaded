@@ -67,7 +67,7 @@ public class iConomy extends JavaPlugin {
 	private static Timer Interest_Timer = null;
 
 	@Override
-	public void onEnable() {
+	public final void onEnable() {
 		Locale.setDefault(Locale.US);
 
 		// Get the server
@@ -164,7 +164,7 @@ public class iConomy extends JavaPlugin {
 	}
 
 	@Override
-	public void onDisable() {
+	public final void onDisable() {
 		try {
 			if (Misc.is(Constants.DatabaseType, new String[] { "sqlite", "h2", "h2sql", "h2db" })) {
 				Database.connectionPool().dispose();
@@ -190,7 +190,7 @@ public class iConomy extends JavaPlugin {
 	}
 
 	@Override
-	public boolean onCommand(final CommandSender sender, final Command cmd, final String commandLabel, final String[] args) {
+	public final boolean onCommand(final CommandSender sender, final Command cmd, final String commandLabel, final String[] args) {
 		final String[] split = new String[args.length + 1];
 		split[0] = cmd.getName().toLowerCase();
 		System.arraycopy(args, 0, split, 1, args.length);
@@ -227,7 +227,6 @@ public class iConomy extends JavaPlugin {
 
 						try {
 							conn = iConomy.getiCoDatabase().getConnection();
-							stmt = null;
 
 							System.out.println(" - Updating " + Constants.DatabaseType + " Database for latest iConomy");
 
@@ -290,7 +289,6 @@ public class iConomy extends JavaPlugin {
 					conn = iConomy.getiCoDatabase().getConnection();
 					final DatabaseMetaData dbm = conn.getMetaData();
 					rs = dbm.getTables(null, null, "ibalances", null);
-					ps = null;
 
 					if (rs.next()) {
 						System.out.println(" - Updating " + Constants.DatabaseType + " Database for latest iConomy");
@@ -384,20 +382,6 @@ public class iConomy extends JavaPlugin {
 	 */
 	public static String format(final String account) {
 		return getAccount(account).getHoldings().toString();
-	}
-
-	/**
-	 * Formats the balance in a human readable form with the currency attached:<br />
-	 * <br />
-	 * 20000.53 = 20,000.53 Coin<br />
-	 * 20000.00 = 20,000 Coin
-	 *
-	 * @param account
-	 *            The name of the account you wish to be formatted
-	 * @return String
-	 */
-	public static String format(final String bank, final String account) {
-		return new Bank(bank).getAccount(account).getHoldings().toString();
 	}
 
 	/**

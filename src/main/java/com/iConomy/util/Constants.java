@@ -1,6 +1,5 @@
 package com.iConomy.util;
 
-import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,50 +10,31 @@ public class Constants {
 	public static final String Codename = "Eruanna";
 
 	// Nodes
-	private static String[] nodes = new String[] {
-		"System.Banking.Enabled:false",
-		"System.Logging.Enabled:false",
-		"System.Interest.Enabled:false",
+	private static final String[] nodes = new String[] { "System.Banking.Enabled:false", "System.Logging.Enabled:false", "System.Interest.Enabled:false",
 		"System.Interest.Announce.Enabled:false",
 
-		"System.Default.Account.Holdings:30.0",
-		"System.Default.Currency.Major:[ 'Dollar', 'Dollars' ]",
+		"System.Default.Account.Holdings:30.0", "System.Default.Currency.Major:[ 'Dollar', 'Dollars' ]",
 		"System.Default.Currency.Minor:[ 'Coin', 'Coins' ]",
 
-		"System.Default.Bank.Name:iConomy",
-		"System.Default.Bank.Account.Fee:30.0",
-		"System.Default.Bank.Account.Holdings:30.0",
-		"System.Default.Bank.Currency.Major:[ 'Dollar', 'Dollars' ]",
-		"System.Default.Bank.Currency.Minor:[ 'Coin', 'Coins' ]",
+		"System.Default.Bank.Name:iConomy", "System.Default.Bank.Account.Fee:30.0", "System.Default.Bank.Account.Holdings:30.0",
+		"System.Default.Bank.Currency.Major:[ 'Dollar', 'Dollars' ]", "System.Default.Bank.Currency.Minor:[ 'Coin', 'Coins' ]",
 
 		"System.Banking.Accounts.Multiple:true",
 
-		"System.Formatting.Minor:true",
-		"System.Formatting.Seperate:false",
+		"System.Formatting.Minor:true", "System.Formatting.Seperate:false",
 
-		"System.Interest.Online:true",
-		"System.Interest.Interval.Seconds:60",
-		"System.Interest.Amount.Cutoff:0.0",
-		"System.Interest.Amount.On:Players",
-		"System.Interest.Amount.Percent:0.0",
-		"System.Interest.Amount.Minimum:1",
-		"System.Interest.Amount.Maximum:2",
+		"System.Interest.Online:true", "System.Interest.Interval.Seconds:60", "System.Interest.Amount.Cutoff:0.0", "System.Interest.Amount.On:Players",
+		"System.Interest.Amount.Percent:0.0", "System.Interest.Amount.Minimum:1", "System.Interest.Amount.Maximum:2",
 
-		"System.Database.Type:H2SQL",
-		"System.Database.Settings.Name:minecraft",
-		"System.Database.Settings.Table:iConomy",
+		"System.Database.Type:H2SQL", "System.Database.Settings.Name:minecraft", "System.Database.Settings.Table:iConomy",
 
-		"System.Database.Settings.MySQL.Hostname:localhost",
-		"System.Database.Settings.MySQL.Port:3306",
-		"System.Database.Settings.MySQL.Username:root",
-		"System.Database.Settings.MySQL.Password:none",
-	};
+		"System.Database.Settings.MySQL.Hostname:localhost", "System.Database.Settings.MySQL.Port:3306", "System.Database.Settings.MySQL.Username:root",
+		"System.Database.Settings.MySQL.Password:none", };
 
 	// Files and Directories
-	public static File Configuration;
 	public static String Plugin_Directory;
-	public static String H2_Jar_Location = "http://www.h2database.com/automated/h2-latest.jar";
-	public static String MySQL_Jar_Location = "http://mirror.anigaiku.com/Dependencies/mysql-connector-java-bin.jar";
+	public static final String H2_Jar_Location = "http://www.h2database.com/automated/h2-latest.jar";
+	public static final String MySQL_Jar_Location = "http://mirror.anigaiku.com/Dependencies/mysql-connector-java-bin.jar";
 
 	// iConomy basics
 	public static List<String> Major = new LinkedList<>();
@@ -102,8 +82,14 @@ public class Constants {
 	public static String SQLTable = "iConomy";
 
 	public static void load(final FileConfiguration config) {
-		Major.add("Dollar"); Major.add("Dollars"); BankMajor.add("Dollar"); BankMajor.add("Dollars");
-		Minor.add("Coin"); Minor.add("Coins"); BankMinor.add("Coin"); BankMinor.add("Coins");
+		Major.add("Dollar");
+		Major.add("Dollars");
+		BankMajor.add("Dollar");
+		BankMajor.add("Dollars");
+		Minor.add("Coin");
+		Minor.add("Coins");
+		BankMinor.add("Coin");
+		BankMinor.add("Coins");
 
 		// System Configuration
 		Major = config.getStringList("System.Default.Currency.Major");
@@ -152,18 +138,18 @@ public class Constants {
 
 		int i = 0;
 
-		for(final String node : nodes) {
+		for (final String node : nodes) {
 			if (config.get(node.split(":")[0]) == null) {
 				i++;
 			}
 		}
 
-		if(i != 0) {
+		if (i != 0) {
 			System.out.println("[iConomy] Configuration Integrity Start:");
 
-			for(final String node : nodes) {
+			for (final String node : nodes) {
 				if (config.get(node.split(":")[0]) == null) {
-					System.out.println("    - "+ node.split(":")[0] +" is null or missing, Defaulting to: " + node.split(":")[1]);
+					System.out.println("    - " + node.split(":")[0] + " is null or missing, Defaulting to: " + node.split(":")[1]);
 				}
 			}
 

@@ -5,65 +5,68 @@
 
 package com.iConomy.system;
 
-import com.iConomy.iConomy;
-import com.iConomy.util.Constants;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import com.iConomy.iConomy;
+import com.iConomy.util.Constants;
 
 /**
  *
  * @author Nijikokun
  */
 public class BankAccount {
-    private String BankName;
-    private int BankId;
-    private String AccountName;
+	private final String BankName;
+	private final int BankId;
+	private final String AccountName;
 
-    public BankAccount(String BankName, int BankId, String AccountName) {
-        this.BankName = BankName;
-        this.BankId = BankId;
-        this.AccountName = AccountName;
-    }
+	public BankAccount(final String BankName, final int BankId, final String AccountName) {
+		this.BankName = BankName;
+		this.BankId = BankId;
+		this.AccountName = AccountName;
+	}
 
-    public String getBankName() {
-        return this.BankName;
-    }
+	public final String getBankName() {
+		return this.BankName;
+	}
 
-    public int getBankId() {
-        return this.BankId;
-    }
+	public final int getBankId() {
+		return this.BankId;
+	}
 
-    public void getAccountName(String AccountName) {
-        this.AccountName = AccountName;
-    }
+	public final Holdings getHoldings() {
+		return new Holdings(this.BankId, this.AccountName, true);
+	}
 
-    public Holdings getHoldings() {
-        return new Holdings(this.BankId, this.AccountName, true);
-    }
+	public final void remove() {
+		Connection conn = null;
+		final ResultSet rs = null;
+		PreparedStatement ps = null;
 
-    public void remove() {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
+			ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + "_BankRelations WHERE bank_id = ? AND account_name = ?");
+			ps.setInt(1, BankId);
+			ps.setString(2, AccountName);
+			ps.executeUpdate();
+		} catch (final Exception e) {
+			return;
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
-            ps = conn.prepareStatement("DELETE FROM " + Constants.SQLTable + "_BankRelations WHERE bank_id = ? AND account_name = ?");
-            ps.setInt(1, BankId);
-            ps.setString(2, AccountName);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            return;
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
-
-        return;
-    }
+		return;
+	}
 }

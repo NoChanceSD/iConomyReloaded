@@ -9,8 +9,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Template {
 
-	private File tplFile = null;
-	private FileConfiguration tpl = null;
+	private final File tplFile;
+	private final FileConfiguration tpl;
 
 	public Template(final String directory, final String filename) {
 		this.tplFile = new File(directory, filename);
@@ -22,7 +22,7 @@ public class Template {
 		}
 	}
 
-	public void upgrade() throws IOException {
+	public final void upgrade() throws IOException {
 		final LinkedHashMap<String, String> nodes = new LinkedHashMap<>();
 
 		if (this.tpl.getString("error.bank.exists") == null) {
@@ -99,38 +99,16 @@ public class Template {
 	 *
 	 * @return <code>String</code> - Template line / string.
 	 */
-	public String raw(final String key) {
+	public final String raw(final String key) {
 		return this.tpl.getString(key);
 	}
 
-	/**
-	 * Grab the raw template line and save data if no key existed.
-	 *
-	 * @param key
-	 *            The template key we are searching for.
-	 * @param line
-	 *            The line to be placed if no key was found.
-	 *
-	 * @return
-	 */
-	public String raw(final String key, final String line) {
-		return this.tpl.getString(key, line);
-	}
-
-	public void save(final String key, final String line) throws IOException {
-		this.tpl.set(key, line);
-		this.tpl.save(tplFile);
-	}
-
-	public String color(final String key) {
+	public final String color(final String key) {
 		return Messaging.parse(Messaging.colorize(this.raw(key)));
 	}
 
-	public String parse(final String key, final Object[] argument, final Object[] points) {
+	public final String parse(final String key, final Object[] argument, final Object[] points) {
 		return Messaging.parse(Messaging.colorize(Messaging.argument(this.raw(key), argument, points)));
 	}
 
-	public String parse(final String key, final String line, final Object[] argument, final Object[] points) {
-		return Messaging.parse(Messaging.colorize(Messaging.argument(this.raw(key, line), argument, points)));
-	}
 }

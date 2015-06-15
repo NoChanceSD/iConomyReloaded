@@ -20,14 +20,14 @@ import com.iConomy.util.Messaging;
 import com.iConomy.util.Template;
 
 public class Interest extends TimerTask {
-	Template Template = null;
+	final Template Template;
 
 	public Interest(final String directory) {
 		Template = new Template(directory, "Messages.yml");
 	}
 
 	@Override
-	public void run() {
+	public final void run() {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
@@ -36,19 +36,19 @@ public class Interest extends TimerTask {
 		final List<String> players = new ArrayList<>();
 		final HashMap<String, Integer> bankPlayers = new HashMap<>();
 
-		if(Constants.InterestOnline) {
+		if (Constants.InterestOnline) {
 			final Collection<? extends Player> player = iConomy.getBukkitServer().getOnlinePlayers();
 
-			if(Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking) {
-				for(final Player p : player) {
+			if (Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking) {
+				for (final Player p : player) {
 					players.add(p.getName());
 				}
 			} else {
-				for(final Player p : player) {
+				for (final Player p : player) {
 					final Account account = iConomy.getAccount(p.getName());
 
-					if(account != null) {
-						for(final BankAccount baccount : account.getBankAccounts()) {
+					if (account != null) {
+						for (final BankAccount baccount : account.getBankAccounts()) {
 							bankPlayers.put(p.getName(), baccount.getBankId());
 						}
 					}
@@ -58,7 +58,7 @@ public class Interest extends TimerTask {
 			conn = iConomy.getiCoDatabase().getConnection();
 
 			try {
-				if(Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking)
+				if (Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking)
 					ps = conn.prepareStatement("SELECT * FROM " + Constants.SQLTable);
 				else {
 					ps = conn.prepareStatement("SELECT account_name,bank_id FROM " + Constants.SQLTable + "_BankRelations group by bank_id");
@@ -66,23 +66,23 @@ public class Interest extends TimerTask {
 
 				rs = ps.executeQuery();
 
-				while(rs.next()) {
-					if(Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking)
+				while (rs.next()) {
+					if (Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking)
 						players.add(rs.getString("username"));
 					else {
 						bankPlayers.put(rs.getString("account_name"), rs.getInt("bank_id"));
 					}
 				}
-			} catch(final Exception E) {
+			} catch (final Exception E) {
 				System.out.println("[iConomy] Error executing query for interest: " + E.getMessage());
 			} finally {
-				if(conn != null)
+				if (conn != null)
 					conn = null;
 
-				if(ps != null)
+				if (ps != null)
 					ps = null;
 
-				if(rs != null)
+				if (rs != null)
 					rs = null;
 			}
 		}
@@ -91,14 +91,14 @@ public class Interest extends TimerTask {
 		double amount = 0.0;
 		boolean percentage = false;
 
-		if(Constants.InterestPercentage != 0.0){
+		if (Constants.InterestPercentage != 0.0) {
 			percentage = true;
 		} else {
-			final Double min = Constants.InterestMin;
-			final Double max = Constants.InterestMax;
+			final double min = Constants.InterestMin;
+			final double max = Constants.InterestMax;
 
 			try {
-				if(min != max)
+				if (min != max)
 					amount = Double.valueOf(DecimalFormat.format(Math.random() * (max - min) + min));
 				else {
 					amount = max;
@@ -112,7 +112,7 @@ public class Interest extends TimerTask {
 			conn = iConomy.getiCoDatabase().getConnection();
 			conn.setAutoCommit(false);
 
-			if(Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking) {
+			if (Constants.InterestType.equalsIgnoreCase("players") || !Constants.Banking) {
 				final String updateSQL = "UPDATE " + Constants.SQLTable + " SET balance = ? WHERE username = ?";
 				ps = conn.prepareStatement(updateSQL);
 
@@ -122,7 +122,7 @@ public class Interest extends TimerTask {
 					if (account != null) {
 						final Holdings holdings = account.getHoldings();
 
-						if(holdings != null) {
+						if (holdings != null) {
 							final double balance = holdings.balance();
 							final double original = balance;
 
@@ -130,32 +130,28 @@ public class Interest extends TimerTask {
 								if (original >= cutoff) {
 									continue;
 								}
-							} else if(cutoff < 0.0) {
-								if(original <= cutoff) {
+							} else if (cutoff < 0.0) {
+								if (original <= cutoff) {
 									continue;
 								}
 							}
 
-							if(percentage) {
-								amount = Math.round(Constants.InterestPercentage * balance/100);
+							if (percentage) {
+								amount = Math.round(Constants.InterestPercentage * balance / 100);
 							}
 
-							ps.setDouble(1, balance+amount);
+							ps.setDouble(1, balance + amount);
 							ps.setString(2, name);
 							ps.addBatch();
 
-							if(Constants.InterestAnn && Constants.InterestOnline) {
+							if (Constants.InterestAnn && Constants.InterestOnline) {
 								Messaging.send(
 										iConomy.getBukkitServer().getPlayer(name),
-										Template.parse(
-												"interest.announcement",
-												new String[]{ "+amount,+money,+interest,+a,+m,+i" },
-												new Object[]{ iConomy.format(amount) }
-												)
-										);
+										Template.parse("interest.announcement", new String[] { "+amount,+money,+interest,+a,+m,+i" },
+												new Object[] { iConomy.format(amount) }));
 							}
 
-							if(amount < 0.0)
+							if (amount < 0.0)
 								iConomy.getTransactions().insert("[System Interest]", name, 0.0, original, 0.0, 0.0, amount);
 							else {
 								iConomy.getTransactions().insert("[System Interest]", name, 0.0, original, 0.0, amount, 0.0);
@@ -173,7 +169,7 @@ public class Interest extends TimerTask {
 					if (account != null) {
 						final Holdings holdings = account.getBankHoldings(bankPlayers.get(name));
 
-						if(holdings != null) {
+						if (holdings != null) {
 							final double balance = holdings.balance();
 							final double original = balance;
 
@@ -181,33 +177,29 @@ public class Interest extends TimerTask {
 								if (original >= cutoff) {
 									continue;
 								}
-							} else if(cutoff < 0.0) {
-								if(original <= cutoff) {
+							} else if (cutoff < 0.0) {
+								if (original <= cutoff) {
 									continue;
 								}
 							}
 
-							if(percentage) {
-								amount = Math.round(Constants.InterestPercentage * balance/100);
+							if (percentage) {
+								amount = Math.round(Constants.InterestPercentage * balance / 100);
 							}
 
-							ps.setDouble(1, balance+amount);
+							ps.setDouble(1, balance + amount);
 							ps.setString(2, name);
 							ps.setInt(3, bankPlayers.get(name));
 							ps.addBatch();
 
-							if(Constants.InterestAnn && Constants.InterestOnline) {
+							if (Constants.InterestAnn && Constants.InterestOnline) {
 								Messaging.send(
 										iConomy.getBukkitServer().getPlayer(name),
-										Template.parse(
-												"interest.announcement",
-												new String[]{ "+amount,+money,+interest,+a,+m,+i" },
-												new Object[]{ iConomy.format(amount) }
-												)
-										);
+										Template.parse("interest.announcement", new String[] { "+amount,+money,+interest,+a,+m,+i" },
+												new Object[] { iConomy.format(amount) }));
 							}
 
-							if(amount < 0.0)
+							if (amount < 0.0)
 								iConomy.getTransactions().insert("[System Interest]", name, 0.0, original, 0.0, 0.0, amount);
 							else {
 								iConomy.getTransactions().insert("[System Interest]", name, 0.0, original, 0.0, amount, 0.0);
@@ -217,7 +209,7 @@ public class Interest extends TimerTask {
 				}
 			}
 
-			//Execute the batch.
+			// Execute the batch.
 			ps.executeBatch();
 
 			// Commit
@@ -229,10 +221,13 @@ public class Interest extends TimerTask {
 		} catch (final SQLException e) {
 			System.out.println(e);
 		} finally {
-			if(ps != null)
-				try { ps.close(); } catch (final SQLException ex) { }
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-			if(conn != null)
+			if (conn != null)
 				iConomy.getiCoDatabase().close(conn);
 		}
 	}

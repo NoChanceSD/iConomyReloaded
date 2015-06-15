@@ -1,198 +1,183 @@
 package com.iConomy.system;
 
-import com.iConomy.events.AccountResetEvent;
-import com.iConomy.events.AccountSetEvent;
-import com.iConomy.events.AccountUpdateEvent;
-import com.iConomy.iConomy;
-import com.iConomy.util.Constants;
-import com.iConomy.util.Misc;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 
+import com.iConomy.iConomy;
+import com.iConomy.events.AccountResetEvent;
+import com.iConomy.events.AccountSetEvent;
+import com.iConomy.events.AccountUpdateEvent;
+import com.iConomy.util.Constants;
+import com.iConomy.util.Misc;
+
 /**
  * Controls player Holdings, and Bank Account holdings.
- * 
+ *
  * @author Nijikokun
  */
 public class Holdings {
-    private String name = "";
-    private boolean bank = false;
-    private int bankId = 0;
+	private final String name;
+	private final boolean bank;
+	private final int bankId;
 
-    public Holdings(String name) {
-        this.name = name;
-    }
+	public Holdings(final int id, final String name, final boolean bank) {
+		this.bank = bank;
+		this.bankId = id;
+		this.name = name;
+	}
 
-    public Holdings(int id, String name) {
-        this.bankId = id;
-        this.name = name;
-    }
+	public final boolean isBank() {
+		return bank;
+	}
 
-    public Holdings(int id, String name, boolean bank) {
-        this.bank = bank;
-        this.bankId = id;
-        this.name = name;
-    }
+	public final double balance() {
+		return get();
+	}
 
-    public boolean isBank() {
-        return bank;
-    }
+	private double get() {
+		Connection conn = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
+		Double balance = Constants.Holdings;
 
-    public double balance() {
-        return get();
-    }
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
 
-    private double get() {
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
-        Double balance = Constants.Holdings;
+			if (this.bankId == 0) {
+				ps = conn.prepareStatement("SELECT * FROM " + Constants.SQLTable + " WHERE username = ? LIMIT 1");
+				ps.setString(1, this.name);
+			} else {
+				ps = conn.prepareStatement("SELECT * FROM " + Constants.SQLTable + "_BankRelations WHERE account_name = ? AND bank_id = ? LIMIT 1");
+				ps.setString(1, this.name);
+				ps.setInt(2, this.bankId);
+			}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
+			rs = ps.executeQuery();
 
-            if(this.bankId == 0) {
-                ps = conn.prepareStatement("SELECT * FROM " + Constants.SQLTable + " WHERE username = ? LIMIT 1");
-                ps.setString(1, this.name);
-            } else {
-                ps = conn.prepareStatement("SELECT * FROM " + Constants.SQLTable + "_BankRelations WHERE account_name = ? AND bank_id = ? LIMIT 1");
-                ps.setString(1, this.name);
-                ps.setInt(2, this.bankId);
-            }
+			if (rs.next()) {
+				balance = this.bankId == 0 ? rs.getDouble("balance") : rs.getDouble("holdings");
+			}
+		} catch (final Exception e) {
+			System.out.println("[iConomy] Failed to grab holdings: " + e);
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-            rs = ps.executeQuery();
+			if (rs != null)
+				try {
+					rs.close();
+				} catch (final SQLException ex) {
+				}
 
-            if (rs.next()) {
-                balance = (this.bankId == 0) ? rs.getDouble("balance") : rs.getDouble("holdings");
-            }
-        } catch (Exception e) {
-            System.out.println("[iConomy] Failed to grab holdings: " + e);
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
 
-            if(rs != null)
-                try { rs.close(); } catch (SQLException ex) { }
+		return balance;
+	}
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
+	public final void set(final double balance) {
+		final AccountSetEvent Event = new AccountSetEvent(this.name, balance);
+		iConomy.getBukkitServer().getPluginManager().callEvent(Event);
 
-        return balance;
-    }
+		Connection conn = null;
+		final ResultSet rs = null;
+		PreparedStatement ps = null;
 
-    public void set(double balance) {
-        AccountSetEvent Event = new AccountSetEvent(this.name, balance);
-        iConomy.getBukkitServer().getPluginManager().callEvent(Event);
+		try {
+			conn = iConomy.getiCoDatabase().getConnection();
 
-        Connection conn = null;
-        ResultSet rs = null;
-        PreparedStatement ps = null;
+			if (bankId == 0) {
+				ps = conn.prepareStatement("UPDATE " + Constants.SQLTable + " SET balance = ? WHERE username = ?");
+				ps.setDouble(1, balance);
+				ps.setString(2, this.name);
+			} else {
+				ps = conn.prepareStatement("UPDATE " + Constants.SQLTable + "_BankRelations SET holdings = ? WHERE account_name = ? AND bank_id = ?");
+				ps.setDouble(1, balance);
+				ps.setString(2, this.name);
+				ps.setInt(3, this.bankId);
+			}
 
-        try {
-            conn = iConomy.getiCoDatabase().getConnection();
+			ps.executeUpdate();
+		} catch (final Exception e) {
+			System.out.println("[iConomy] Failed to set holdings: " + e);
+		} finally {
+			if (ps != null)
+				try {
+					ps.close();
+				} catch (final SQLException ex) {
+				}
 
-            if(bankId == 0) {
-                ps = conn.prepareStatement("UPDATE " + Constants.SQLTable + " SET balance = ? WHERE username = ?");
-                ps.setDouble(1, balance);
-                ps.setString(2, this.name);
-            } else {
-                ps = conn.prepareStatement("UPDATE " + Constants.SQLTable + "_BankRelations SET holdings = ? WHERE account_name = ? AND bank_id = ?");
-                ps.setDouble(1, balance);
-                ps.setString(2, this.name);
-                ps.setInt(3, this.bankId);
-            }
+			if (conn != null)
+				try {
+					conn.close();
+				} catch (final SQLException ex) {
+				}
+		}
+	}
 
-            ps.executeUpdate();
-        } catch (Exception e) {
-            System.out.println("[iConomy] Failed to set holdings: " + e);
-        } finally {
-            if(ps != null)
-                try { ps.close(); } catch (SQLException ex) { }
+	public final void add(final double amount) {
+		final double balance = this.get();
+		final double ending = balance + amount;
 
-            if(conn != null)
-                try { conn.close(); } catch (SQLException ex) { }
-        }
-    }
+		this.math(amount, balance, ending);
+	}
 
-    public void add(double amount) {
-        double balance = this.get();
-        double ending = (balance + amount);
+	public final void subtract(final double amount) {
+		final double balance = this.get();
+		final double ending = balance - amount;
 
-        this.math(amount, balance, ending);
-    }
+		this.math(amount, balance, ending);
+	}
 
-    public void subtract(double amount) {
-        double balance = this.get();
-        double ending = (balance - amount);
+	public final void reset() {
+		final AccountResetEvent Event = new AccountResetEvent(this.name);
+		iConomy.getBukkitServer().getPluginManager().callEvent(Event);
 
-        this.math(amount, balance, ending);
-    }
+		if (!Event.isCancelled())
+			this.set(Constants.Holdings);
+	}
 
-    public void divide(double amount) {
-        double balance = this.get();
-        double ending = (balance / amount);
+	private void math(final double amount, final double balance, final double ending) {
+		final AccountUpdateEvent Event = new AccountUpdateEvent(this.name, balance, ending, amount);
+		iConomy.getBukkitServer().getPluginManager().callEvent(Event);
 
-        this.math(amount, balance, ending);
-    }
+		if (!Event.isCancelled())
+			this.set(ending);
+	}
 
-    public void multiply(double amount) {
-        double balance = this.get();
-        double ending = (balance * amount);
+	public final boolean isNegative() {
+		return this.get() < 0.0;
+	}
 
-        this.math(amount, balance, ending);
-    }
+	public final boolean hasEnough(final double amount) {
+		return amount <= this.get();
+	}
 
-    public void reset() {
-        AccountResetEvent Event = new AccountResetEvent(this.name);
-        iConomy.getBukkitServer().getPluginManager().callEvent(Event);
+	@Override
+	public final String toString() {
+		final DecimalFormat formatter = new DecimalFormat("#,##0.00");
+		final Double balance = this.get();
+		String formatted = formatter.format(balance);
 
-        if(!Event.isCancelled())
-            this.set(Constants.Holdings);
-    }
+		if (formatted.endsWith(".")) {
+			formatted = formatted.substring(0, formatted.length() - 1);
+		}
 
-    private void math(double amount, double balance, double ending) {
-        AccountUpdateEvent Event = new AccountUpdateEvent(this.name, balance, ending, amount);
-        iConomy.getBukkitServer().getPluginManager().callEvent(Event);
+		if (bankId == 0) {
+			return Misc.formatted(formatted, Constants.Major, Constants.Minor);
+		}
 
-        if(!Event.isCancelled())
-            this.set(ending);
-    }
-
-    public boolean isNegative() {
-        return this.get() < 0.0;
-    }
-
-    public boolean hasEnough(double amount) {
-        return amount <= this.get();
-    }
-
-    public boolean hasOver(double amount) {
-        return amount < this.get();
-    }
-
-    public boolean hasUnder(double amount) {
-        return amount > this.get();
-    }
-
-    @Override
-    public String toString() {
-        DecimalFormat formatter = new DecimalFormat("#,##0.00");
-        Double balance = this.get();
-        String formatted = formatter.format(balance);
-
-        if (formatted.endsWith(".")) {
-            formatted = formatted.substring(0, formatted.length() - 1);
-        }
-
-        if(bankId == 0) {
-            return Misc.formatted(formatted, Constants.Major, Constants.Minor);
-        }
-
-        Bank b = new Bank(this.bankId);
-        return Misc.formatted(formatted, b.getMajor(), b.getMinor());
-    }
+		final Bank b = new Bank(this.bankId);
+		return Misc.formatted(formatted, b.getMajor(), b.getMinor());
+	}
 }

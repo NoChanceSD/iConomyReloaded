@@ -13,16 +13,16 @@ public class AccountSetEvent extends Event {
 		this.balance = balance;
 	}
 
-	public String getAccountName() {
+	public final String getAccountName() {
 		return account;
 	}
 
-	public double getBalance() {
+	public final double getBalance() {
 		return balance;
 	}
 
 	@Override
-	public HandlerList getHandlers() {
+	public final HandlerList getHandlers() {
 		// TODO Auto-generated method stub
 		return null;
 	}

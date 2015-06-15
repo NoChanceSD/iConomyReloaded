@@ -18,37 +18,37 @@ public class AccountUpdateEvent extends Event {
 		this.amount = amount;
 	}
 
-	public String getAccountName() {
+	public final String getAccountName() {
 		return account;
 	}
 
-	public double getAmount() {
+	public final double getAmount() {
 		return amount;
 	}
 
-	public void setAmount(final double amount) {
+	public final void setAmount(final double amount) {
 		this.amount = amount;
-		this.balance = previous+amount;
+		this.balance = previous + amount;
 	}
 
-	public double getPrevious() {
+	public final double getPrevious() {
 		return previous;
 	}
 
-	public double getBalance() {
+	public final double getBalance() {
 		return balance;
 	}
 
-	public boolean isCancelled() {
+	public final boolean isCancelled() {
 		return cancelled;
 	}
 
-	public void setCancelled(final boolean cancelled) {
+	public final void setCancelled(final boolean cancelled) {
 		this.cancelled = cancelled;
 	}
 
 	@Override
-	public HandlerList getHandlers() {
+	public final HandlerList getHandlers() {
 		// TODO Auto-generated method stub
 		return null;
 	}
